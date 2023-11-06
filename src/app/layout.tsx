@@ -30,15 +30,6 @@ export default async function RootLayout({
     })
     :
     null
-  if (session && !user) {
-    await prisma.user.create({
-      data: {
-        email: session.user?.email!,
-        name: "USER",
-        profile: "",
-      }
-    })
-  }
 
   return (
     <html lang="en">
