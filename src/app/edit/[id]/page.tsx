@@ -78,7 +78,7 @@ export default async function Page({ params: { id } }: { params: { id: string } 
                     <label htmlFor="content" className="w-full my-4 font-bold text-2xl">本文</label>
                     <textarea defaultValue={article.content} name="content" id="content" className="text-lg w-full h-full border focus:outline-none p-4 rounded-2xl resize-none"></textarea>
                 </div>
-                <button type="submit" className="mt-4 py-4 text-xl w-full hover:bg-green-200 rounded-2xl transition-all">投稿</button>
+                <button type="submit" className="mt-4 py-4 text-xl w-full hover:bg-green-200 rounded-2xl transition-all">更新</button>
             </form>
         </div>
     )
