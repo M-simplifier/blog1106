@@ -24,7 +24,7 @@ function UserProfile({ user }: { user: User & { tags: Tag[] } }) {
         <Link href={`/person/${user.id}`} className="grid w-1/4 grid-rows-[auto_1fr_auto] border">
             <h2 className="text-2xl font-semibold text-center">{user.name}</h2>
             <p>{user.shortPhrase}</p>
-            <div className="flex">
+            <div className="flex overflow-x-scroll">
                 {user.tags.map(tag => <TagComponent key={tag.id} tag={tag}></TagComponent>)}
             </div>
         </Link>
