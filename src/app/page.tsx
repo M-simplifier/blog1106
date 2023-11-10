@@ -1,13 +1,10 @@
 import { Article, User } from "@prisma/client";
 import Link from "next/link";
-import { SVGProps } from "react"
+import { SVGProps, cache } from "react"
 import { prisma } from "@/prismaClient";
 import { formatDate } from "@/utils/utils";
 
-
-export default async function Home() {
-  const oneWeekAgo = new Date()
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+const getPickups = cache(async (oneWeekAgo: Date) => {
   const pickups = await prisma.article.findMany({
     where: {
       createdAt: {
@@ -33,8 +30,11 @@ export default async function Home() {
       }
     ],
     take: 6,
-  });
+  })
+  return pickups
+})
 
+const getNews = cache(async () => {
   const news = await prisma.article.findMany({
     orderBy: {
       createdAt: "desc",
@@ -49,6 +49,15 @@ export default async function Home() {
     },
     take: 6,
   })
+  return news
+})
+
+
+export default async function Home() {
+  const oneWeekAgo = new Date()
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+  const pickups = await getPickups(oneWeekAgo)
+  const news = await getNews()
 
   return (
     <div>

@@ -1,21 +1,18 @@
 import { prisma } from "@/prismaClient"
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
+import { cache } from "react"
 
-export default async function Page({ params: { id } }: { params: { id: string } }) {
-    const session = await getServerSession()
-    if (!session) {
-        redirect("/")
-    }
+const getUser = cache(async (email: string) => {
     const user = await prisma.user.findUnique({
         where: {
-            email: session.user?.email!
+            email: email
         }
     })
-    if (!user) {
-        return <div>something is wrong.</div>
-    }
+    return user
+})
 
+const getArticle = cache(async (id: string) => {
     const article = await prisma.article.findUnique({
         where: {
             id: id,
@@ -24,6 +21,20 @@ export default async function Page({ params: { id } }: { params: { id: string } 
             tags: true,
         }
     })
+    return article
+})
+
+export default async function Page({ params: { id } }: { params: { id: string } }) {
+    const session = await getServerSession()
+    if (!session) {
+        redirect("/")
+    }
+    const user = await getUser(session.user?.email!)
+    if (!user) {
+        return <div>something is wrong.</div>
+    }
+
+    const article = await getArticle(id)
     if (!article || article.userId !== user.id) {
         return <div>Invalid Access</div>
     }

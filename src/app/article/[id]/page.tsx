@@ -3,29 +3,28 @@ import { formatDate } from "@/utils/utils";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { SVGProps } from "react";
+import { SVGProps, cache } from "react";
 import Tag from "@/components/Tag";
 import Markdown from "@/components/Markdown";
 import { getServerSession } from "next-auth";
 
-export default async function Page({ params: { id } }: { params: { id: string } }) {
-    const session = await getServerSession()
-    const user = session ?
-        await prisma.user.findUnique({
-            where: {
-                email: session.user?.email!
-            },
-            include: {
-                hearted: {
-                    select: {
-                        id: true,
-                    }
+const getUser = cache(async (email: string) => {
+    const user = await prisma.user.findUnique({
+        where: {
+            email: email,
+        },
+        include: {
+            hearted: {
+                select: {
+                    id: true,
                 }
             }
-        })
-        :
-        null
+        }
+    })
+    return user
+})
 
+const getArticle = cache(async (id: string) => {
     const article = await prisma.article.findUnique({
         where: {
             id: id,
@@ -40,6 +39,17 @@ export default async function Page({ params: { id } }: { params: { id: string } 
             }
         }
     })
+    return article
+})
+
+export default async function Page({ params: { id } }: { params: { id: string } }) {
+    const session = await getServerSession()
+    const user = session ?
+        await getUser(session.user?.email!)
+        :
+        null
+
+    const article = await getArticle(id)
 
     if (!article) {
         return <h2>Page was not found.</h2>

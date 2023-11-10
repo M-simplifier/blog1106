@@ -2,13 +2,19 @@ import { prisma } from "@/prismaClient"
 import { Tag, User } from "@prisma/client"
 import TagComponent from "@/components/Tag"
 import Link from "next/link"
+import { cache } from "react"
 
-export default async function Page() {
+const getUsers = cache(async () => {
     const users = await prisma.user.findMany({
         include: {
             tags: true,
         }
     })
+    return users
+})
+
+export default async function Page() {
+    const users = await getUsers()
 
     return (
         <div className="h-full border">

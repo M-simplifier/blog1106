@@ -2,9 +2,9 @@ import { prisma } from "@/prismaClient"
 import { formatDate } from "@/utils/utils"
 import { Article, User } from "@prisma/client"
 import Link from "next/link"
-import { SVGProps } from "react"
+import { SVGProps, cache } from "react"
 
-export default async function Page({ params: { id } }: { params: { id: string } }) {
+const getTag = cache(async (id: string) => {
     const tag = await prisma.tag.findUnique({
         where: {
             id: id,
@@ -25,6 +25,11 @@ export default async function Page({ params: { id } }: { params: { id: string } 
             },
         }
     })
+    return tag
+})
+
+export default async function Page({ params: { id } }: { params: { id: string } }) {
+    const tag = await getTag(id)
 
     if (!tag) {
         return <p>Page was not found.</p>

@@ -3,19 +3,18 @@ import Tag from "@/components/Tag"
 import { prisma } from "@/prismaClient"
 import { getServerSession } from "next-auth"
 import Link from "next/link"
-import { SVGProps } from "react"
+import { SVGProps, cache } from "react"
 
-export default async function Page({ params: { id } }: { params: { id: string } }) {
-    const session = await getServerSession()
-    const user = session ?
-        await prisma.user.findUnique({
-            where: {
-                email: session.user?.email!
-            }
-        })
-        :
-        null
+const getUser = cache(async (email: string) => {
+    const user = await prisma.user.findUnique({
+        where: {
+            email: email
+        }
+    })
+    return user
+})
 
+const getPerson = cache(async (id: string) => {
     const person = await prisma.user.findUnique({
         where: {
             id: id
@@ -24,7 +23,17 @@ export default async function Page({ params: { id } }: { params: { id: string } 
             tags: true,
         }
     })
+    return person
+})
 
+export default async function Page({ params: { id } }: { params: { id: string } }) {
+    const session = await getServerSession()
+    const user = session ?
+        await getUser(session.user?.email!)
+        :
+        null
+
+    const person = await getPerson(id)
     if (!person) {
         return <div>Page was not found.</div>
     }

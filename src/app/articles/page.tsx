@@ -1,8 +1,9 @@
 import { prisma } from "@/prismaClient"
 import { Article, Tag } from "@prisma/client"
 import Link from "next/link"
+import { cache } from "react"
 
-export default async function Page() {
+const getTags = cache(async () => {
     const tags = await prisma.tag.findMany({
         include: {
             articles: {
@@ -13,6 +14,12 @@ export default async function Page() {
             },
         },
     })
+    return tags
+})
+
+export default async function Page() {
+
+    const tags = await getTags()
 
     return (
         <div>

@@ -1,17 +1,32 @@
 import { prisma } from "@/prismaClient"
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
+import { cache } from "react"
+
+const getUser = cache(async (email: string) => {
+    const user = await prisma.user.findUnique({
+        where: {
+            email: email
+        }
+    })
+    return user
+})
+
+const getTag = cache(async (name: string) => {
+    const tag = await prisma.tag.findFirst({
+        where: {
+            name: name,
+        }
+    })
+    return tag
+})
 
 export default async function Home() {
     const session = await getServerSession()
     if (!session) {
         redirect("/")
     }
-    const user = await prisma.user.findUnique({
-        where: {
-            email: session.user?.email!
-        }
-    })
+    const user = await getUser(session.user?.email!)
     if (!user) {
         return <div>something is wrong.</div>
     }
@@ -21,11 +36,7 @@ export default async function Home() {
         const title: string = formData.get("title") as string
         const rawTags: string[] = (formData.get("tags") as string).toLowerCase().split(",").map(s => s.trim())
         const tags = await Promise.all(rawTags.map(async rawTag => {
-            let tag = await prisma.tag.findFirst({
-                where: {
-                    name: rawTag,
-                }
-            })
+            let tag = await getTag(rawTag)
             if (!tag) {
                 tag = await prisma.tag.create({
                     data: {
